@@ -144,16 +144,38 @@ static error_t hal_riscv_read_reg_entry(const fdt_t* fdt, dt_node_t node, u32 re
 
 	u64 addr;
 	u64 size;
-	err = dt_read_u32_cells_be(reg_buf, entry_offset, address_cells, &addr);
+	err = hal_riscv_read_u32_cells_be(reg_buf, entry_offset, address_cells, &addr);
 	if (err)
 		return err;
 
-	err = dt_read_u32_cells_be(reg_buf, entry_offset + (size_t)address_cells * sizeof(u32), size_cells, &size);
+	err = hal_riscv_read_u32_cells_be(reg_buf, entry_offset + (size_t)address_cells * sizeof(u32), size_cells, &size);
 	if (err)
 		return err;
 
 	*addrOUT = addr;
 	*sizeOUT = size;
+	return ERR_NONE;
+}
+
+static error_t hal_riscv_read_u32_cells_be(buffer_t buf, size_t offset, u32 cell_count, u64* out) {
+	if (out == nullptr || cell_count == 0 || cell_count > 2)
+		return ERR_BAD_ARG;
+
+	if (buf.size < offset)
+		return ERR_NOT_VALID;
+	if (buf.size - offset < (size_t)cell_count * sizeof(u32))
+		return ERR_NOT_VALID;
+
+	u64 value = 0;
+	for (u32 idx = 0; idx < cell_count; ++idx) {
+		u32 cell = 0;
+		if (!buffer_read_u32_be(buf, offset + (size_t)idx * sizeof(u32), &cell))
+			return ERR_NOT_VALID;
+
+		value = (value << 32) | cell;
+	}
+
+	*out = value;
 	return ERR_NONE;
 }
 
