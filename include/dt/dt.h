@@ -236,6 +236,31 @@ error_t dt_get_prop_buffer(const fdt_t* fdt, dt_prop_t prop, buffer_t* bufOUT);
 [[gnu::nonnull(3)]]
 error_t dt_get_rsv_mem_entry(const fdt_t* fdt, u32 index, fdt_rsv_entry* entryOUT);
 
+/**
+ * @brief Get #address-cells and #size-cells properties from a node.
+ * @param fdt Pointer to the fdt object.
+ * @param node The node to read cell counts from.
+ * @param[out] address_cellsOUT Number of address cells (default 2).
+ * @param[out] size_cellsOUT Number of size cells (default 1).
+ * @retval ERR_NONE on success
+ * @retval ERR_BAD_ARG on nullptr args
+ * @retval ERR_NOT_VALID if the FDT is invalid or cell counts exceed 2
+ */
+[[gnu::nonnull(3, 4)]]
+error_t dt_get_reg_cell_counts(const fdt_t* fdt, dt_node_t node, u32* address_cellsOUT, u32* size_cellsOUT);
+
+/**
+ * @brief Read a multi-cell big-endian value from a buffer.
+ * @param buf Buffer to read from.
+ * @param offset Byte offset in buffer.
+ * @param cell_count Number of 32-bit cells to read (1-2).
+ * @param[out] out Resulting u64 value.
+ * @retval ERR_NONE on success
+ * @retval ERR_BAD_ARG on invalid cell_count
+ * @retval ERR_NOT_VALID if buffer is too small or read fails
+ */
+error_t dt_read_u32_cells_be(buffer_t buf, size_t offset, u32 cell_count, u64* out);
+
 /// @}
 
 #endif // !DT_DT

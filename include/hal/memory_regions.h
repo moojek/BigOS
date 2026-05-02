@@ -9,7 +9,7 @@
  * Fields of this struct should not be modified directly.
  * */
 typedef struct {
-	alignas(16) u8 data[16];
+	alignas(16) u8 data[32];
 } hal_reserved_memory_iterator_t;
 
 /**
@@ -26,7 +26,7 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
  * Fields of this struct should not be modified directly.
  * */
 typedef struct {
-	alignas(16) u8 data[16];
+	alignas(16) u8 data[32];
 } hal_memory_iterator_t;
 
 /**
