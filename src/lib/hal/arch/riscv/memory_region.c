@@ -5,6 +5,8 @@
 
 #include "../../hal_internal.h"
 
+static error_t hal_riscv_read_u32_cells_be(buffer_t buf, size_t offset, u32 cell_count, u64* out);
+
 static error_t hal_riscv_init_fdt(fdt_t* fdtOUT) {
 	if (fdtOUT == nullptr)
 		return ERR_BAD_ARG;
