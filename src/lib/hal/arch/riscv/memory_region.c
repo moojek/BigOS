@@ -47,37 +47,15 @@ static error_t hal_riscv_node_is_memory(const fdt_t* fdt, dt_node_t node, bool* 
 	return ERR_NONE;
 }
 
-static error_t hal_riscv_find_first_memory_node(const fdt_t* fdt, dt_node_t* nodeOUT) {
-	if (fdt == nullptr || nodeOUT == nullptr)
-		return ERR_BAD_ARG;
-
-	dt_node_t node;
-	error_t err = dt_get_node_child(fdt, fdt->root_node, &node);
-	if (err)
-		return err;
-
-	while (true) {
-		bool is_memory;
-		err = hal_riscv_node_is_memory(fdt, node, &is_memory);
-		if (err)
-			return err;
-
-		if (is_memory) {
-			*nodeOUT = node;
-			return ERR_NONE;
-		}
-
-		err = dt_get_node_sibling(fdt, node, &node);
-		if (err)
-			return err;
-	}
-}
-
 static error_t hal_riscv_find_next_memory_node(const fdt_t* fdt, dt_node_t node, dt_node_t* nodeOUT) {
 	if (fdt == nullptr || nodeOUT == nullptr)
 		return ERR_BAD_ARG;
 
-	error_t err = dt_get_node_sibling(fdt, node, &node);
+	error_t err;
+	if (node != 0)
+		err = dt_get_node_sibling(fdt, node, &node);
+	else
+		err = dt_get_node_child(fdt, fdt->root_node, &node);
 	if (err)
 		return err;
 
@@ -301,7 +279,7 @@ error_t hal_get_memory_regions_iterator(hal_memory_iterator_t* iterOUT) {
 		return err;
 
 	dt_node_t first_memory_node;
-	err = hal_riscv_find_first_memory_node(&fdt, &first_memory_node);
+	err = hal_riscv_find_next_memory_node(&fdt, 0, &first_memory_node);
 	if (err)
 		return err;
 
