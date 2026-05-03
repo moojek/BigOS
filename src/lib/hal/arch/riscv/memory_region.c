@@ -278,7 +278,6 @@ typedef struct {
 	u32 reg_idx;
 	u32 size_cells;
 	u32 address_cells;
-	bool has_node;
 } riscv_hal_mem_iter_t;
 static_assert(sizeof(riscv_hal_mem_iter_t) <= sizeof(hal_memory_iterator_t));
 
@@ -307,7 +306,6 @@ error_t hal_get_memory_regions_iterator(hal_memory_iterator_t* iterOUT) {
 	    .reg_idx = 0,
 	    .size_cells = size_cells,
 	    .address_cells = address_cells,
-	    .has_node = true,
 	};
 	*(riscv_hal_mem_iter_t*)iterOUT = init;
 	return ERR_NONE;
@@ -318,8 +316,6 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 		return ERR_BAD_ARG;
 
 	riscv_hal_mem_iter_t next_iter = *(riscv_hal_mem_iter_t*)iter;
-	if (!next_iter.has_node)
-		return ERR_NOT_FOUND;
 
 	const fdt_t* fdt;
 	error_t err = hal_riscv_get_fdt(&fdt);
@@ -329,7 +325,7 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 	u32 address_cells = next_iter.address_cells;
 	u32 size_cells = next_iter.size_cells;
 
-	while (next_iter.has_node) {
+	while (next_iter.node != 0) {
 		u64 addr;
 		u64 size;
 		err = hal_riscv_read_reg_entry(fdt, next_iter.node, next_iter.reg_idx, address_cells, size_cells, &addr, &size);
@@ -352,13 +348,11 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 		if (err == ERR_NONE) {
 			next_iter.node = next_memory_node;
 			next_iter.reg_idx = 0;
-			next_iter.has_node = true;
 			continue;
 		}
 
 		if (err == ERR_NOT_FOUND) {
 			next_iter.node = 0;
-			next_iter.has_node = false;
 			break;
 		}
 
