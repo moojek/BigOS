@@ -261,11 +261,6 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 			continue;
 		}
 
-		if (err == ERR_NOT_FOUND) {
-			next_iter.resmem_current_node = 0;
-			break;
-		}
-
 		return err;
 	}
 
@@ -348,11 +343,6 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 			next_iter.node = next_memory_node;
 			next_iter.reg_idx = 0;
 			continue;
-		}
-
-		if (err == ERR_NOT_FOUND) {
-			next_iter.node = 0;
-			break;
 		}
 
 		return err;
