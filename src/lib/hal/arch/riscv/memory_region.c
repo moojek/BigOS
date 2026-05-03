@@ -5,6 +5,9 @@
 
 #include "../../hal_internal.h"
 
+static fdt_t hal_riscv_fdt;
+static bool hal_riscv_fdt_initialized = false;
+
 static error_t hal_riscv_read_u32_cells_be(buffer_t buf, size_t offset, u32 cell_count, u64* out);
 
 static error_t hal_riscv_init_fdt(fdt_t* fdtOUT) {
@@ -20,6 +23,22 @@ static error_t hal_riscv_init_fdt(fdt_t* fdtOUT) {
 		return err;
 
 	return dt_init(dtb, fdtOUT);
+}
+
+static error_t hal_riscv_get_fdt(const fdt_t** fdtOUT) {
+	if (fdtOUT == nullptr)
+		return ERR_BAD_ARG;
+
+	if (!hal_riscv_fdt_initialized) {
+		error_t err = hal_riscv_init_fdt(&hal_riscv_fdt);
+		if (err)
+			return err;
+
+		hal_riscv_fdt_initialized = true;
+	}
+
+	*fdtOUT = &hal_riscv_fdt;
+	return ERR_NONE;
 }
 
 static error_t hal_riscv_node_is_memory(const fdt_t* fdt, dt_node_t node, bool* isMemoryOUT) {
@@ -151,24 +170,24 @@ error_t hal_get_reserved_regions_iterator(hal_reserved_memory_iterator_t* iterOU
 	if (iterOUT == nullptr)
 		return ERR_BAD_ARG;
 
-	fdt_t fdt;
-	error_t err = hal_riscv_init_fdt(&fdt);
+	const fdt_t* fdt;
+	error_t err = hal_riscv_get_fdt(&fdt);
 	if (err)
 		return err;
 
 	dt_node_t reserved_mem_root;
-	err = dt_get_node_by_path(&fdt, "/reserved-memory", &reserved_mem_root);
+	err = dt_get_node_by_path(fdt, "/reserved-memory", &reserved_mem_root);
 	if (err)
 		return err;
 
 	u32 address_cells;
 	u32 size_cells;
-	err = dt_get_reg_cell_counts(&fdt, reserved_mem_root, &address_cells, &size_cells);
+	err = dt_get_reg_cell_counts(fdt, reserved_mem_root, &address_cells, &size_cells);
 	if (err)
 		return err;
 
 	dt_node_t resmem_first_node;
-	err = dt_get_node_child(&fdt, reserved_mem_root, &resmem_first_node);
+	err = dt_get_node_child(fdt, reserved_mem_root, &resmem_first_node);
 	if (err)
 		return err;
 
@@ -188,8 +207,8 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 	if (iter == nullptr || areaOUT == nullptr)
 		return ERR_BAD_ARG;
 
-	fdt_t fdt;
-	error_t err = hal_riscv_init_fdt(&fdt);
+	const fdt_t* fdt;
+	error_t err = hal_riscv_get_fdt(&fdt);
 	if (err)
 		return err;
 
@@ -197,7 +216,7 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 
 	if (!next_iter.is_in_resmem) {
 		fdt_rsv_entry entry;
-		err = dt_get_rsv_mem_entry(&fdt, next_iter.memreserve_idx, &entry);
+		err = dt_get_rsv_mem_entry(fdt, next_iter.memreserve_idx, &entry);
 		if (err == ERR_NONE) {
 			memory_area_t area = {
 			    .addr = (uintptr_t)entry.address,
@@ -218,7 +237,7 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 	while (next_iter.resmem_current_node) {
 		u64 addr;
 		u64 size;
-		err = hal_riscv_read_reg_entry(&fdt, next_iter.resmem_current_node, next_iter.resmem_reg_idx,
+		err = hal_riscv_read_reg_entry(fdt, next_iter.resmem_current_node, next_iter.resmem_reg_idx,
 		                               next_iter.resmem_address_cells, next_iter.resmem_size_cells, &addr, &size);
 		if (err == ERR_NONE) {
 			memory_area_t area = {
@@ -235,7 +254,7 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 			return err;
 
 		dt_node_t sibling;
-		err = dt_get_node_sibling(&fdt, next_iter.resmem_current_node, &sibling);
+		err = dt_get_node_sibling(fdt, next_iter.resmem_current_node, &sibling);
 		if (err == ERR_NONE) {
 			next_iter.resmem_current_node = sibling;
 			next_iter.resmem_reg_idx = 0;
@@ -267,19 +286,19 @@ error_t hal_get_memory_regions_iterator(hal_memory_iterator_t* iterOUT) {
 	if (iterOUT == nullptr)
 		return ERR_BAD_ARG;
 
-	fdt_t fdt;
-	error_t err = hal_riscv_init_fdt(&fdt);
+	const fdt_t* fdt;
+	error_t err = hal_riscv_get_fdt(&fdt);
 	if (err)
 		return err;
 
 	u32 address_cells;
 	u32 size_cells;
-	err = dt_get_reg_cell_counts(&fdt, fdt.root_node, &address_cells, &size_cells);
+	err = dt_get_reg_cell_counts(fdt, fdt->root_node, &address_cells, &size_cells);
 	if (err)
 		return err;
 
 	dt_node_t first_memory_node;
-	err = hal_riscv_find_next_memory_node(&fdt, 0, &first_memory_node);
+	err = hal_riscv_find_next_memory_node(fdt, 0, &first_memory_node);
 	if (err)
 		return err;
 
@@ -302,8 +321,8 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 	if (!next_iter.has_node)
 		return ERR_NOT_FOUND;
 
-	fdt_t fdt;
-	error_t err = hal_riscv_init_fdt(&fdt);
+	const fdt_t* fdt;
+	error_t err = hal_riscv_get_fdt(&fdt);
 	if (err)
 		return err;
 
@@ -313,8 +332,7 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 	while (next_iter.has_node) {
 		u64 addr;
 		u64 size;
-		err =
-		    hal_riscv_read_reg_entry(&fdt, next_iter.node, next_iter.reg_idx, address_cells, size_cells, &addr, &size);
+		err = hal_riscv_read_reg_entry(fdt, next_iter.node, next_iter.reg_idx, address_cells, size_cells, &addr, &size);
 		if (err == ERR_NONE) {
 			const physical_memory_region_t area = {
 			    .addr = (__phys void*)(uintptr_t)addr,
@@ -330,7 +348,7 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 			return err;
 
 		dt_node_t next_memory_node;
-		err = hal_riscv_find_next_memory_node(&fdt, next_iter.node, &next_memory_node);
+		err = hal_riscv_find_next_memory_node(fdt, next_iter.node, &next_memory_node);
 		if (err == ERR_NONE) {
 			next_iter.node = next_memory_node;
 			next_iter.reg_idx = 0;
