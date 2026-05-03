@@ -180,8 +180,6 @@ error_t hal_get_reserved_regions_iterator(hal_reserved_memory_iterator_t* iterOU
 
 	dt_node_t reserved_mem_root;
 	err = dt_get_node_by_path(&fdt, "/reserved-memory", &reserved_mem_root);
-	if (err == ERR_NOT_FOUND)
-		return ERR_NOT_FOUND;
 	if (err)
 		return err;
 
@@ -193,8 +191,6 @@ error_t hal_get_reserved_regions_iterator(hal_reserved_memory_iterator_t* iterOU
 
 	dt_node_t resmem_first_node;
 	err = dt_get_node_child(&fdt, reserved_mem_root, &resmem_first_node);
-	if (err == ERR_NOT_FOUND)
-		return ERR_NOT_FOUND;
 	if (err)
 		return err;
 
