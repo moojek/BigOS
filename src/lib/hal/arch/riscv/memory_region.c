@@ -269,7 +269,6 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 		return err;
 	}
 
-	*(riscv_hal_res_mem_iter_t*)iter = next_iter;
 	return ERR_NOT_FOUND;
 }
 
@@ -359,6 +358,5 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 		return err;
 	}
 
-	*(riscv_hal_mem_iter_t*)iter = next_iter;
 	return ERR_NOT_FOUND;
 }
