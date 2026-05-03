@@ -22,22 +22,6 @@ static error_t hal_riscv_init_fdt(fdt_t* fdtOUT) {
 	return dt_init(dtb, fdtOUT);
 }
 
-static bool hal_riscv_node_name_is_memory(buffer_t node_name) {
-	if (!buffer_is_valid(node_name))
-		return false;
-
-	const buffer_t memory_name = make_buffer("memory", 6);
-	if (buffer_equal(node_name, memory_name))
-		return true;
-
-	if (node_name.size < 7)
-		return false;
-
-	const buffer_t memory_prefix = make_buffer("memory@", 7);
-	const buffer_t node_prefix = buffer_sub_buffer(node_name, 0, 7);
-	return buffer_equal(node_prefix, memory_prefix);
-}
-
 static error_t hal_riscv_node_is_memory(const fdt_t* fdt, dt_node_t node, bool* isMemoryOUT) {
 	if (fdt == nullptr || isMemoryOUT == nullptr)
 		return ERR_BAD_ARG;
@@ -56,16 +40,10 @@ static error_t hal_riscv_node_is_memory(const fdt_t* fdt, dt_node_t node, bool* 
 			*isMemoryOUT = true;
 			return ERR_NONE;
 		}
-	} else if (err != ERR_NOT_FOUND) {
-		return err;
 	}
 
-	buffer_t node_name;
-	err = dt_get_node_name(fdt, node, &node_name);
-	if (err)
+	if (err != ERR_NOT_FOUND)
 		return err;
-
-	*isMemoryOUT = hal_riscv_node_name_is_memory(node_name);
 	return ERR_NONE;
 }
 
