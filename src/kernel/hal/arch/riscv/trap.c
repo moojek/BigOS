@@ -1,7 +1,6 @@
-#include "trap.h"
+#include "hal/include/trap.h"
 
 #include <debug/debug_stdio.h>
-#include <hal/trap.h>
 #include <stdbigos/error.h>
 #include <stdbigos/math.h>
 #include <stdbigos/string.h>
@@ -10,6 +9,7 @@
 
 #include "csr.h"
 #include "csr_vals.h"
+#include "trap.h"
 
 extern void hal_riscv_trap_entry();
 extern void hal_riscv_trap_restore(void*);

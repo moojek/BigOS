@@ -9,7 +9,6 @@
 #ifndef HAL_ARCH_RISCV_TRAP_H
 #define HAL_ARCH_RISCV_TRAP_H
 
-#include <hal/trap.h>
 #include <stdbigos/types.h>
 
 /**

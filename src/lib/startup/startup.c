@@ -6,7 +6,6 @@
 
 */
 
-#include <hal/trap.h>
 #include <relocations/reloc.h>
 #include <stdbigos/string.h>
 #include <stdbigos/types.h>
@@ -23,7 +22,7 @@ extern int main(u32 hartid, const void* fdt);
 
 [[gnu::section(".fini"), noreturn, gnu::noinline]]
 static void _Exit([[maybe_unused]] int return_code) {
-	while (1) hal_wait_for_interrupt();
+	while (1) __asm__ volatile("wfi" ::: "memory");
 }
 
 // NOLINTBEGIN(clang-analyzer-security.ArrayBound)
