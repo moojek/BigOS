@@ -1,9 +1,9 @@
 #include <dt/dt.h>
-#include <hal/memory_regions.h>
 #include <stdbigos/buffer.h>
 #include <stdbigos/error.h>
 
 #include "../../hal_internal.h"
+#include "../../include/memory_regions.h"
 
 static fdt_t hal_riscv_fdt;
 static bool hal_riscv_fdt_initialized = false;
