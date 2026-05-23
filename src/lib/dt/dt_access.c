@@ -404,7 +404,9 @@ error_t dt_get_reg_cell_counts(const fdt_t* fdt, dt_node_t node, u32* address_ce
 
 	dt_prop_t address_cells_prop;
 	error_t err = dt_get_prop_by_name(fdt, node, "#address-cells", &address_cells_prop);
-	if (err == ERR_NONE) {
+	if (err != ERR_NONE && err != ERR_NOT_FOUND) {
+		return err;
+	} else if (err == ERR_NONE) {
 		buffer_t buf;
 		err = dt_get_prop_buffer(fdt, address_cells_prop, &buf);
 		if (err)
@@ -412,13 +414,13 @@ error_t dt_get_reg_cell_counts(const fdt_t* fdt, dt_node_t node, u32* address_ce
 
 		if (!buffer_read_u32_be(buf, 0, address_cellsOUT) || *address_cellsOUT == 0)
 			return ERR_NOT_VALID;
-	} else if (err != ERR_NOT_FOUND) {
-		return err;
 	}
 
 	dt_prop_t size_cells_prop;
 	err = dt_get_prop_by_name(fdt, node, "#size-cells", &size_cells_prop);
-	if (err == ERR_NONE) {
+	if (err != ERR_NONE && err != ERR_NOT_FOUND) {
+		return err;
+	} else if (err == ERR_NONE) {
 		buffer_t buf;
 		err = dt_get_prop_buffer(fdt, size_cells_prop, &buf);
 		if (err)
@@ -426,8 +428,6 @@ error_t dt_get_reg_cell_counts(const fdt_t* fdt, dt_node_t node, u32* address_ce
 
 		if (!buffer_read_u32_be(buf, 0, size_cellsOUT) || *size_cellsOUT == 0)
 			return ERR_NOT_VALID;
-	} else if (err != ERR_NOT_FOUND) {
-		return err;
 	}
 
 	if (*address_cellsOUT > 2 || *size_cellsOUT > 2)

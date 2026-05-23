@@ -239,7 +239,9 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 		u64 size;
 		err = hal_riscv_read_reg_entry(fdt, next_iter.resmem_current_node, next_iter.resmem_reg_idx,
 		                               next_iter.resmem_address_cells, next_iter.resmem_size_cells, &addr, &size);
-		if (err == ERR_NONE) {
+		if (err != ERR_NONE && err != ERR_NOT_FOUND) {
+			return err;
+		} else if (err == ERR_NONE) {
 			memory_area_t area = {
 			    .addr = (uintptr_t)addr,
 			    .size = size,
@@ -249,9 +251,6 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 			*areaOUT = area;
 			return ERR_NONE;
 		}
-
-		if (err != ERR_NOT_FOUND)
-			return err;
 
 		dt_node_t sibling;
 		err = dt_get_node_sibling(fdt, next_iter.resmem_current_node, &sibling);
@@ -323,7 +322,9 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 		u64 addr;
 		u64 size;
 		err = hal_riscv_read_reg_entry(fdt, next_iter.node, next_iter.reg_idx, address_cells, size_cells, &addr, &size);
-		if (err == ERR_NONE) {
+		if (err != ERR_NONE && err != ERR_NOT_FOUND) {
+			return err;
+		} else if (err == ERR_NONE) {
 			const physical_memory_region_t area = {
 			    .addr = (__phys void*)(uintptr_t)addr,
 			    .size = size,
@@ -333,9 +334,6 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 			*areaOUT = area;
 			return ERR_NONE;
 		}
-
-		if (err != ERR_NOT_FOUND)
-			return err;
 
 		dt_node_t next_memory_node;
 		err = hal_riscv_find_next_memory_node(fdt, next_iter.node, &next_memory_node);
