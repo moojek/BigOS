@@ -66,6 +66,19 @@ static error_t hal_riscv_node_is_memory(const fdt_t* fdt, dt_node_t node, bool* 
 	return ERR_NONE;
 }
 
+/// Finds the next memory node in the device tree.
+///
+/// This function has special behavior depending on the \p node parameter:
+/// - When \p node is 0: Returns the first memory node (child of root)
+/// - When \p node is non-zero: Returns the next sibling memory node after \p node
+///
+/// This dual behavior allows the function to be used both for finding the first
+/// memory node and for iterating through subsequent memory nodes.
+///
+/// \param fdt Pointer to the device tree structure
+/// \param node Current node (0 to get first memory node, or previous memory node to get next)
+/// \param nodeOUT Output parameter for the found memory node
+/// \return ERR_NONE on success, error code otherwise
 static error_t hal_riscv_find_next_memory_node(const fdt_t* fdt, dt_node_t node, dt_node_t* nodeOUT) {
 	if (fdt == nullptr || nodeOUT == nullptr)
 		return ERR_BAD_ARG;
