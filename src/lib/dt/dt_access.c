@@ -406,7 +406,8 @@ error_t dt_get_reg_cell_counts(const fdt_t* fdt, dt_node_t node, u32* address_ce
 	error_t err = dt_get_prop_by_name(fdt, node, "#address-cells", &address_cells_prop);
 	if (err != ERR_NONE && err != ERR_NOT_FOUND) {
 		return err;
-	} else if (err == ERR_NONE) {
+	}
+	if (err == ERR_NONE) {
 		buffer_t buf;
 		err = dt_get_prop_buffer(fdt, address_cells_prop, &buf);
 		if (err)
@@ -420,7 +421,8 @@ error_t dt_get_reg_cell_counts(const fdt_t* fdt, dt_node_t node, u32* address_ce
 	err = dt_get_prop_by_name(fdt, node, "#size-cells", &size_cells_prop);
 	if (err != ERR_NONE && err != ERR_NOT_FOUND) {
 		return err;
-	} else if (err == ERR_NONE) {
+	}
+	if (err == ERR_NONE) {
 		buffer_t buf;
 		err = dt_get_prop_buffer(fdt, size_cells_prop, &buf);
 		if (err)
