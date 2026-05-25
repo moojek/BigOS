@@ -5,8 +5,8 @@
 #include "../../hal_internal.h"
 #include "../../include/memory_regions.h"
 
-static fdt_t hal_riscv_fdt;
-static bool hal_riscv_fdt_initialized = false;
+static fdt_t g_hal_riscv_fdt;
+static bool g_hal_riscv_fdt_initialized = false;
 
 static error_t hal_riscv_read_u32_cells_be(buffer_t buf, size_t offset, u32 cell_count, u64* out);
 
@@ -29,15 +29,15 @@ static error_t hal_riscv_get_fdt(const fdt_t** fdtOUT) {
 	if (fdtOUT == nullptr)
 		return ERR_BAD_ARG;
 
-	if (!hal_riscv_fdt_initialized) {
-		error_t err = hal_riscv_init_fdt(&hal_riscv_fdt);
+	if (!g_hal_riscv_fdt_initialized) {
+		error_t err = hal_riscv_init_fdt(&g_hal_riscv_fdt);
 		if (err)
 			return err;
 
-		hal_riscv_fdt_initialized = true;
+		g_hal_riscv_fdt_initialized = true;
 	}
 
-	*fdtOUT = &hal_riscv_fdt;
+	*fdtOUT = &g_hal_riscv_fdt;
 	return ERR_NONE;
 }
 
@@ -84,10 +84,11 @@ static error_t hal_riscv_find_next_memory_node(const fdt_t* fdt, dt_node_t node,
 		return ERR_BAD_ARG;
 
 	error_t err;
-	if (node != 0)
+	if (node != 0) {
 		err = dt_get_node_sibling(fdt, node, &node);
-	else
+	} else {
 		err = dt_get_node_child(fdt, fdt->root_node, &node);
+	}
 	if (err)
 		return err;
 
@@ -254,7 +255,8 @@ error_t hal_get_next_reserved_region(hal_reserved_memory_iterator_t* iter, memor
 		                               next_iter.resmem_address_cells, next_iter.resmem_size_cells, &addr, &size);
 		if (err != ERR_NONE && err != ERR_NOT_FOUND) {
 			return err;
-		} else if (err == ERR_NONE) {
+		}
+		if (err == ERR_NONE) {
 			memory_area_t area = {
 			    .addr = (uintptr_t)addr,
 			    .size = size,
@@ -337,7 +339,8 @@ error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_
 		err = hal_riscv_read_reg_entry(fdt, next_iter.node, next_iter.reg_idx, address_cells, size_cells, &addr, &size);
 		if (err != ERR_NONE && err != ERR_NOT_FOUND) {
 			return err;
-		} else if (err == ERR_NONE) {
+		}
+		if (err == ERR_NONE) {
 			const physical_memory_region_t area = {
 			    .addr = (__phys void*)(uintptr_t)addr,
 			    .size = size,
